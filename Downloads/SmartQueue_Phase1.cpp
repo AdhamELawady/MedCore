@@ -4,11 +4,13 @@ using namespace std;
 #pragma once
 #ifndef _NODE
 #define _NODE
+
 template <typename T>
 class Node {
 private:
     T item;
     Node<T>* next;
+
 public:
     Node();
     Node(const T& r_Item);
@@ -17,6 +19,7 @@ public:
     T getItem() const;
     Node<T>* getNext() const;
 };
+
 #endif
 
 template <typename T>
@@ -42,6 +45,7 @@ class LinkedListQueue {
 private:
     Node<T>* backPtr;
     Node<T>* frontPtr;
+
 public:
     LinkedListQueue();
     bool isEmpty() const;
@@ -66,7 +70,8 @@ bool LinkedListQueue<T>::enqueue(const T& newEntry) {
     Node<T>* newNode = new Node<T>(newEntry);
     if (isEmpty()) {
         frontPtr = backPtr = newNode;
-    } else {
+    }
+    else {
         backPtr->setNext(newNode);
         backPtr = newNode;
     }
@@ -100,65 +105,30 @@ LinkedListQueue<T>::~LinkedListQueue() {
     while (dequeue(temp));
 }
 
-// Utility functions
-
-template <typename T>
-void PrintQueue(LinkedListQueue<T> Q) {
-    T item;
-    cout << "Queue contents: ";
-    while (Q.dequeue(item)) {
-        cout << item << " ";
-    }
-    cout << endl;
-}
-
-template <typename T>
-int QueueSum(LinkedListQueue<int> Q) {
-    int item, sum = 0;
-    while (Q.dequeue(item)) {
-        sum += item;
-    }
-    return sum;
-}
-
-template <typename T>
-void removeFirstPostitive(LinkedListQueue<T>& Q) {
-    T item;
-    while (!Q.isEmpty()) {
-        Q.peek(item);
-        if (item == 0)
-            break;
-        Q.dequeue(item);
-    }
-}
-
+// Test case demonstration
 int main() {
-    LinkedListQueue<int> queue;
+    LinkedListQueue<int> q;
 
-    if (queue.isEmpty()) {
-        cout << "Queue is initially empty.\n";
-    }
+    cout << "Is queue empty? " << (q.isEmpty() ? "Yes" : "No") << endl;
 
-    cout << "Enqueuing numbers 10, 20, 30 into the queue.\n";
-    queue.enqueue(10);
-    queue.enqueue(20);
-    queue.enqueue(30);
+    cout << "Enqueuing 10, 20, 30..." << endl;
+    q.enqueue(10);
+    q.enqueue(20);
+    q.enqueue(30);
 
     int frontItem;
-    if (queue.peek(frontItem)) {
-        cout << "Front item after enqueues: " << frontItem << "\n";
+    if (q.peek(frontItem)) {
+        cout << "Front item: " << frontItem << endl;
     }
 
-    cout << "Dequeuing items:\n";
-    while (!queue.isEmpty()) {
-        if (queue.dequeue(frontItem)) {
-            cout << "Dequeued: " << frontItem << "\n";
+    cout << "Dequeuing all items:" << endl;
+    while (!q.isEmpty()) {
+        if (q.dequeue(frontItem)) {
+            cout << "Dequeued: " << frontItem << endl;
         }
     }
 
-    if (queue.isEmpty()) {
-        cout << "Queue is now empty after dequeuing all items.\n";
-    }
+    cout << "Is queue empty after dequeue? " << (q.isEmpty() ? "Yes" : "No") << endl;
 
     return 0;
 }
