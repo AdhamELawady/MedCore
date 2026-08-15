@@ -1,7 +1,7 @@
 # MedCore -- Phase 3 (Full Implementation, Qt6 GUI)
 
 CSAI 151 Object Oriented Programming, Summer 2026
-Adham EL-Awady -- 202201921
+Adham EL-Awady
 
 ## What's implemented
 

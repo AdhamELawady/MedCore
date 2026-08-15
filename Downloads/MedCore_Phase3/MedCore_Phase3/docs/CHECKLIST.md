@@ -1,6 +1,6 @@
 MedCore – Final Revision & Pre-Submission Checklist
 
-OOP Summer Project | Adham EL-Awady | SID: 202201921
+OOP Summer Project | Adham EL-Awady
 
 This document is the canonical checklist to verify before final submission and GitHub publication.
 
