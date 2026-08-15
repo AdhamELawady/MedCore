@@ -1,0 +1,29 @@
+# Build artifacts
+build/
+CMakeFiles/
+CMakeCache.txt
+/*.sln
+*.o
+*.obj
+*.exe
+*.dll
+
+# Qt Creator / Qt
+*.pro.user
+/.qmake.stash
+
+# User files
+*.user
+*.suo
+*.VC.db
+
+# IDE directories
+.vscode/
+.idea/
+
+# Temporary
+*.log
+*.tmp
+
+# Test specific
+test_data_tmp/
