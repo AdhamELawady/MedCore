@@ -1,129 +1,160 @@
-# MedCore -- Phase 3 (Full Implementation, Qt6 GUI)
+# MedCore
 
-CSAI 151 Object Oriented Programming, Summer 2026
-Adham EL-Awady
+A modern Qt6 hospital management system for administrators, doctors, receptionists, and patients.
 
-## What's implemented
+MedCore helps manage appointments, patient records, prescriptions, departments, and billing in a single hospital-focused workflow.
 
-Per the Phase 3 requirements ("Full implementation"):
+## Overview
 
-- [x] **Project Full Code** -- every functionality from the Phase 1 proposal is
-      implemented, not just Admin (as in Phase 2). All 4 roles (Admin, Doctor,
-      Receptionist, Patient) have complete, working workflows.
-- [x] **Files for different project data, finalized and filled with sample
-      data** -- `data/` ships with real, cross-referenced sample data: 2
-      departments, 1 admin, 2 doctors, 1 receptionist, 2 patients, an
-      appointment, a medical record, a prescription, and a bill.
-- [x] **Startup load -> operate on data structures -> shutdown save** -- see
-      `ApplicationManager::LoadAll()` / `SaveAll()`. All Operation classes
-      work exclusively against in-memory vectors; files are only touched at
-      startup and shutdown (and on-demand backup).
-- [x] **Qt6 GUI** replacing the Phase 2 console UI entirely (confirmed
-      allowed by the instructor). See "Architecture" below for how this
-      changed the Operation-class design from Phase 2.
+MedCore is a hospital operations dashboard built in C++ with Qt 6. It demonstrates a layered architecture: GUI, application/controller logic, domain model, and file-based persistence. The project is designed to run as a desktop clinical management interface while keeping business logic separate from GUI code.
+
+## Why this project matters
+
+Hospital systems must be clear, role-aware, and trustworthy. MedCore focuses on four common user roles:
+- Admin: manages system setup and staff
+- Doctor: views patient records and updates treatment plans
+- Receptionist: manages appointments
+- Patient: views profile and booking information
+
+The app is structured to reflect a realistic hospital workflow while keeping the codebase suitable for OOP coursework and demonstration.
+
+## Features
+
+- Role-based login and dashboard routing
+- Appointment booking, cancellation, and rescheduling
+- Patient search and doctor search
+- Medical record updates and prescription writing
+- Billing and payment handling
+- Department management
+- File-based persistence and data reload
+- Modern, hospital-themed Qt user interface with dark mode support
+- Headless test coverage for core operations and persistence
 
 ## Architecture
 
-### Why the Operation classes changed shape since Phase 2
+MedCore follows a layered design:
 
-Phase 2's `Operation` classes (`LoginOperation`, `RegisterOperation`) were
-driven by the console `UI` class -- they blocked on `cin`/`cout` via a `UI&`
-member. A Qt GUI is event-driven (button clicks fire slots), which doesn't
-fit a blocking-input model. Phase 3 switches to the **"alternative design"
-explicitly permitted by the course spec**: every Operation class now takes
-its inputs as **constructor parameters** and exposes results via
-`WasSuccessful()` / `GetMessage()`. A Qt slot handler reads values out of
-its widgets, constructs the Operation, calls `Execute()`, and shows the
-result in a `QMessageBox`. The exact same Operation classes are used by the
-automated test suite, so business logic is tested identically to how the
-GUI drives it.
-
-The domain layer (`User` hierarchy, Core classes) is completely UI-agnostic
-and required **zero changes** to support the switch from console to Qt --
-that separation, established in Phase 2, is what made this migration
-straightforward.
-
-### Layers
-
-```
-gui/            Qt6 widgets only -- MainWindow (navigation), LoginPage,
-                RegisterPage, and 4 role dashboards. No business logic lives
-                here; every button click constructs an Operation and reads
-                its result.
-include/,src/   Domain layer: User hierarchy, Core classes, 16 Operation
-                classes, FileManager, ApplicationManager. Zero Qt
-                dependency -- compiles and is fully testable headless.
-tests/          Automated test suite (38 checks) against an isolated
-                ApplicationManager, exercising every Operation class
-                directly plus a full persistence round-trip.
-data/           Shipped sample data files (see below).
+```text
+Qt GUI
+  ↓
+ApplicationManager / Controllers
+  ↓
+Operations
+  ↓
+Domain classes (User, Doctor, Admin, Receptionist, Patient, PatientRecord)
+  ↓
+FileManager
+  ↓
+Data files
 ```
 
-### The 16 Operation classes
+This keeps the UI focused on interaction and leaves domain rules in the application layer.
 
-Login, RegisterPatient, SearchPatient, SearchDoctor, BookAppointment,
-CancelAppointment, RescheduleAppointment, UpdateMedicalRecord,
-WritePrescription, GenerateBill, PayBill, AddDoctor, RemoveDoctor,
-AddReceptionist, ManageDepartment (Add/Update/Remove), AssignDoctor,
-GenerateReports.
+## OOP concepts used
 
-### User hierarchy
+- Encapsulation: data and business logic are kept in model and operation classes
+- Inheritance: Admin, Doctor, Receptionist, and Patient inherit from User
+- Polymorphism: role-based routing uses virtual GetRole() and shared user APIs
+- Composition: Patient owns a PatientRecord for patient-specific information
+- Separation of concerns: GUI, operations, and persistence are split into distinct layers
 
-`User` (abstract) -> `Admin`, `Doctor`, `Receptionist`, `Patient`. Business
-logic that used to live on `Admin` in Phase 2 was moved into Operation
-classes in Phase 3 for consistency with how every other role's actions
-work (documented in `include/Admin.h`).
+## Technologies
 
-## Data files (`data/`)
+- C++17
+- Qt 6
+- CMake
+- File-based persistence (TXT data layer)
+- Unit-style test suite for operation logic
 
-One pipe-delimited text file per entity, per the schema in the SRS:
+## Project structure
 
-| File | Format |
-|---|---|
-| `users.txt` | `UserID\|Username\|PasswordHash\|Role\|Extra` (Extra: `specialization;deptID` for Doctor, `dob;phone;address` for Patient) |
-| `departments.txt` | `DeptID\|Name\|Description\|doctorID1,doctorID2,...` |
-| `appointments.txt` | `ApptID\|PatientID\|DoctorID\|Date\|Time\|Status` |
-| `medical_records.txt` | `RecordID\|PatientID\|DoctorID\|Timestamp\|Diagnosis\|Treatment\|lab1;lab2;...` |
-| `prescriptions.txt` | `RxID\|RecordID\|Duration\|med1:dosage1,med2:dosage2` |
-| `bills.txt` | `BillID\|PatientID\|Total\|Paid(0/1)\|PaymentDate\|item1:amt1,item2:amt2` |
+```text
+MedCore/
+├── include/               Header files for domain and operations
+├── src/                  Core implementation and persistence
+├── gui/                  Qt widgets and dashboards
+├── tests/                Automated tests
+├── data/                 Seed data and runtime data
+├── docs/                 Documentation and screenshots
+├── CMakeLists.txt        Build config
+├── README.md             Project overview and usage
+├── LICENSE               MIT license
+├── .gitignore            Ignore build artifacts
+└── .github/workflows/    CI config
+```
 
-Passwords are never stored in plaintext (hashed via `HashPassword`).
+## Build and run
 
-The shipped `data/` already contains sample records. Deleting `data/`
-before running re-triggers `SeedSampleDataIfEmpty()`, regenerating the same
-starter dataset.
+Requirements:
+- CMake
+- C++17 compiler
+- Qt 6 installed and discoverable by CMake
 
-## Build & run
-
-Requires Qt6 (`qt6-base-dev`), CMake >= 3.16, and a C++17 compiler.
+Build:
 
 ```bash
 cmake -S . -B build
 cmake --build build
-
-./build/medcore_gui        # launch the application
-./build/medcore_tests       # run the 38-check automated test suite
 ```
 
-### Logging in
+Run GUI:
 
-First run seeds a default Admin: **username `admin`, password `admin123`**.
-Sample Doctor/Receptionist/Patient accounts are also seeded (see
-`ApplicationManager::SeedSampleDataIfEmpty()` for the full list and their
-passwords: `doc123`, `rec123`, `pat123` respectively). New patients can also
-self-register from the login screen.
+```bash
+./build/medcore_gui
+```
 
-## Test suite
+Run tests:
 
-`tests/test_operations.cpp` runs against a disposable, isolated data
-directory (never touches the real `data/`), exercising every Operation
-class's success and failure paths (duplicate usernames, appointment
-conflicts, removing a doctor with active appointments, paying an
-already-paid bill, etc.), plus a full save-then-reload round trip to verify
-persistence correctness. 38/38 checks passing.
+```bash
+ctest --test-dir build --output-on-failure
+```
 
-## Presentation & Demo
+## Login credentials
 
-Per the Phase 3 deliverables, a live demo and presentation are required
-separately from the code; this repository provides the working application
-and pre-loaded sample data needed to run one.
+The application seeds example users for demonstration purposes:
+- Admin: `admin` / `admin123`
+- Doctor: `dr.mona` / `doc123`
+- Receptionist: `reception1` / `rec123`
+- Patient: `sara.p` / `pat123`
+
+These are sample accounts for local demo use only.
+
+## Screenshots
+
+The project includes a lightweight visual mockup of the main UI in the repo so the public README is complete even before a full screen capture is attached.
+
+![Login screen mockup](docs/screenshots/login.svg)
+
+![Patient dashboard mockup](docs/screenshots/patient-dashboard.svg)
+
+## UML and docs
+
+Project documentation and checklist files are included in the `docs/` folder.
+- `docs/CHECKLIST.md` — pre-submission checklist and final verification notes
+- `docs/screenshots/` — visual placeholders for public-facing showcase materials
+
+## Testing
+
+The project includes headless operation tests that exercise core workflows such as:
+- login success/failure
+- patient registration
+- appointment booking
+- persistence round trips
+- validation and conflict handling
+
+## Future enhancements
+
+Planned improvements for a production-grade release:
+- switch password storage to bcrypt/argon2 with random per-user salts
+- add stronger database persistence and validation layers
+- improve role-based authorization enforcement in the backend
+- add richer analytics, reporting, and patient messaging
+- package a proper installer and release build pipeline
+
+## License
+
+MIT License.
+
+## Project tagline
+
+MedCore: streamlined hospital operations, designed for real-world care coordination and modern healthcare workflows.
